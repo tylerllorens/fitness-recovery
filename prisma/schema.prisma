@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  days      MetricDay[]
+  tokens    RefreshToken[]
+}
+
+/// Daily metrics captured per user per calendar date (unique)
+model MetricDay {
+  id         String   @id @default(cuid())
+  userId     String
+  date       DateTime
+  // inputs
+  sleepHours Float     @default(0)
+  rhr        Float     @default(0) // resting heart rate (bpm)
+  hrv        Float     @default(0) // ms (rMSSD equivalent)
+  strain     Float     @default(0) // 0-21 normalized training load
+  // outputs
+  readiness  Int       @default(0) // 0-100
+  notes      String?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
