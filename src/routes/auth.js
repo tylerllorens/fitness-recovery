@@ -4,6 +4,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { env } from "../lib/env.js";
+import { authLimiter } from "../middleware/rateLimit.js";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ const registerSchema = z.object({
   name: z.string().min(1),
 });
 
-router.post("/register", async (req, res, next) => {
+router.post("/register", authLimiter, async (req, res, next) => {
   try {
     const { email, password, name } = registerSchema.parse(req.body);
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -32,7 +33,7 @@ const loginSchema = z.object({
   password: z.string().min(8),
 });
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", authLimiter, async (req, res, next) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
     const user = await prisma.user.findUnique({ where: { email } });
