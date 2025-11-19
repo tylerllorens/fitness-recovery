@@ -17,13 +17,31 @@ const registerSchema = z.object({
 
 router.post("/register", authLimiter, async (req, res, next) => {
   try {
+    // Validate request body
     const { email, password, name } = registerSchema.parse(req.body);
+
+    // Check if email exists
     const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) return res.status(409).json({ error: "Email in use" });
+    if (existing) {
+      return sendError(res, "Email already in use", 409);
+    }
+
+    // Create user
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, password: await bcrypt.hash(password, 10), name },
+      data: { email, password: hashedPassword, name },
     });
-    res.status(201).json({ id: user.id, email: user.email, name: user.name });
+
+    // Return user
+    return sendCreated(
+      res,
+      {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      "User registered"
+    );
   } catch (e) {
     next(e);
   }
@@ -36,32 +54,54 @@ const loginSchema = z.object({
 
 router.post("/login", authLimiter, async (req, res, next) => {
   try {
+    // Validate body
     const { email, password } = loginSchema.parse(req.body);
+
+    // Check credentials
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) {
+      return sendError(res, "Invalid email or password", 401);
     }
+
+    // Check password
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      return sendError(res, "Invalid email or password", 401);
+    }
+
+    // Generate tokens
     const accessToken = jwt.sign(
       { id: user.id, email: user.email },
       env.JWT_ACCESS_SECRET,
       { expiresIn: "15m" }
     );
+
     const refreshToken = jwt.sign({ id: user.id }, env.JWT_REFRESH_SECRET, {
       expiresIn: "7d",
     });
+
+    // Store refresh token
     await prisma.refreshToken.create({
       data: { token: refreshToken, userId: user.id },
     });
+
+    // Set cookies
     res.cookie("refresh", refreshToken, {
       httpOnly: true,
       sameSite: "lax",
       secure: false,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    res.json({
-      accessToken,
-      user: { id: user.id, email: user.email, name: user.name },
-    });
+
+    // Respond with tokens
+    return sendSuccess(
+      res,
+      {
+        accessToken,
+        user: { id: user.id, email: user.email, name: user.name },
+      },
+      "Login successful"
+    );
   } catch (e) {
     next(e);
   }
