@@ -109,16 +109,41 @@ router.post("/login", authLimiter, async (req, res, next) => {
 
 router.post("/refresh", async (req, res, next) => {
   try {
+    // Get token from cookie
     const token = req.cookies?.refresh;
-    if (!token) return res.status(401).json({ error: "Missing refresh token" });
+    if (!token) {
+      return sendError(res, "Missing refresh token", 401);
+    }
+
+    // Check if refresh token exists
     const stored = await prisma.refreshToken.findUnique({ where: { token } });
-    if (!stored || stored.revoked)
-      return res.status(401).json({ error: "Token revoked" });
-    const payload = jwt.verify(token, env.JWT_REFRESH_SECRET);
-    const accessToken = jwt.sign({ id: payload.id }, env.JWT_ACCESS_SECRET, {
-      expiresIn: "15m",
-    });
-    res.json({ accessToken });
+
+    if (!stored || stored.revoked) {
+      return sendError(res, "Token revoked", 401);
+    }
+
+    // Verify JWT payload
+    let payload;
+    try {
+      payload = jwt.verify(token, env.JWT_REFRESH_SECRET);
+    } catch (e) {
+      return sendError(res, "Invalid refresh token", 401);
+    }
+
+    if (!payload.id) {
+      return sendError(res, "Refresh token payload missing id", 401);
+    }
+
+    // Create new access token
+    const accessToken = jwt.sign(
+      { id: payload.id, email: payload.email },
+      env.JWT_ACCESS_SECRET,
+      {
+        expiresIn: "15m",
+      }
+    );
+
+    return sendSuccess(res, { accessToken }, "Token refreshed");
   } catch (e) {
     next(e);
   }
@@ -133,7 +158,7 @@ router.post("/logout", async (req, res, next) => {
         .catch(() => {});
       res.clearCookie("refresh");
     }
-    res.json({ ok: true });
+    return sendSuccess(res, null, "Logged out");
   } catch (e) {
     next(e);
   }
