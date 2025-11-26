@@ -7,8 +7,8 @@ import cookieParser from "cookie-parser";
 import { env } from "./lib/env.js";
 import { errorHandler, notFound } from "./middleware/error.js";
 import authRouter from "./routes/auth.js";
-import metricsRouter from "./routes/metrics.js";
 import trendsRouter from "./routes/trends.js";
+import metricDayRouter from "./metrics/metricDay.routes.js";
 import { generalLimiter, authLimiter } from "./middleware/rateLimit.js";
 
 const app = express();
@@ -22,7 +22,7 @@ app.use(generalLimiter);
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authLimiter, authRouter);
-app.use("/api/metrics", metricsRouter);
+app.use("/api/metrics", metricDayRouter);
 app.use("/api/trends", trendsRouter);
 
 app.use(notFound);
