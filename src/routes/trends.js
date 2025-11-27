@@ -2,6 +2,12 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireUser } from "../middleware/requireUser.js";
 
+function classifyReadinessZone(score) {
+  if (score >= 80) return "green"; // high readiness
+  if (score >= 60) return "yellow"; //medium
+  return "red"; // low
+}
+
 const router = Router();
 router.use(requireUser);
 
@@ -51,8 +57,10 @@ router.get("/28d", async (req, res, next) => {
 
 router.get("/summary", async (req, res, next) => {
   try {
+    const rawDays = Number(req.query.days);
+    const periodDays = rawDays === 7 || rawDays === 28 ? rawDays : 7;
     const since = new Date();
-    since.setDate(since.getDate() - 7); // last 7 days
+    since.setDate(since.getDate() - periodDays);
 
     const data = await prisma.metricDay.findMany({
       where: { userId: req.user.id, date: { gte: since } },
@@ -69,16 +77,17 @@ router.get("/summary", async (req, res, next) => {
 
     if (data.length === 0) {
       return res.json({
-        periodDays: 7,
+        periodDays,
         hasData: false,
         averages: null,
         bestDay: null,
         worstDay: null,
-        recommendation:
-          "No data in the last 7 days. Log some metrics to see insights.",
+        zones: null,
+        recommendation: `No data in the last ${periodDays} days. Log some metrics to see insights.`,
       });
     }
 
+    // calculate averages
     const sum = data.reduce(
       (acc, d) => {
         acc.sleepHours += d.sleepHours;
@@ -100,7 +109,7 @@ router.get("/summary", async (req, res, next) => {
       readiness: Math.round(sum.readiness / n),
     };
 
-    // best / worst readiness day
+    // best / worst day
     let best = data[0];
     let worst = data[0];
     for (const d of data) {
@@ -108,7 +117,14 @@ router.get("/summary", async (req, res, next) => {
       if (d.readiness < worst.readiness) worst = d;
     }
 
-    // very simple recommendation logic
+    // zones counts
+    const zones = { green: 0, yellow: 0, red: 0 };
+    for (const d of data) {
+      const zone = classifyReadinessZone(d.readiness);
+      zones[zone] += 1;
+    }
+
+    // simple recommendation logic
     let recommendation = "Solid balance overall. Keep doing what you’re doing.";
     if (averages.sleepHours < 7) {
       recommendation =
@@ -122,17 +138,20 @@ router.get("/summary", async (req, res, next) => {
     }
 
     res.json({
-      periodDays: 7,
+      periodDays,
       hasData: true,
       averages,
       bestDay: {
         date: best.date,
         readiness: best.readiness,
+        zone: classifyReadinessZone(best.readiness),
       },
       worstDay: {
         date: worst.date,
         readiness: worst.readiness,
+        zone: classifyReadinessZone(worst.readiness),
       },
+      zones,
       recommendation,
     });
   } catch (e) {
