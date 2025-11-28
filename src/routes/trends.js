@@ -15,7 +15,8 @@ router.get("/7d", async (req, res, next) => {
   try {
     const since = new Date();
     since.setDate(since.getDate() - 7);
-    const data = await prisma.metricDay.findMany({
+
+    const rows = await prisma.metricDay.findMany({
       where: { userId: req.user.id, date: { gte: since } },
       orderBy: { date: "asc" },
       select: {
@@ -27,6 +28,12 @@ router.get("/7d", async (req, res, next) => {
         readiness: true,
       },
     });
+
+    const data = rows.map((d) => ({
+      ...d,
+      zone: classifyReadinessZone(d.readiness),
+    }));
+
     res.json({ data });
   } catch (e) {
     next(e);
@@ -37,7 +44,8 @@ router.get("/28d", async (req, res, next) => {
   try {
     const since = new Date();
     since.setDate(since.getDate() - 28);
-    const data = await prisma.metricDay.findMany({
+
+    const rows = await prisma.metricDay.findMany({
       where: { userId: req.user.id, date: { gte: since } },
       orderBy: { date: "asc" },
       select: {
@@ -49,6 +57,12 @@ router.get("/28d", async (req, res, next) => {
         readiness: true,
       },
     });
+
+    const data = rows.map((d) => ({
+      ...d,
+      zone: classifyReadinessZone(d.readiness),
+    }));
+
     res.json({ data });
   } catch (e) {
     next(e);
@@ -83,6 +97,8 @@ router.get("/summary", async (req, res, next) => {
         bestDay: null,
         worstDay: null,
         zones: null,
+        sleepStreak7hPlus: 0,
+        greenStreak: 0,
         recommendation: `No data in the last ${periodDays} days. Log some metrics to see insights.`,
       });
     }
@@ -124,6 +140,31 @@ router.get("/summary", async (req, res, next) => {
       zones[zone] += 1;
     }
 
+    // full history streaks calculation
+    const streakRows = await prisma.metricDay.findMany({
+      where: { userId: req.user.id },
+      orderBy: { date: "desc" },
+      select: { date: true, sleepHours: true, readiness: true },
+    });
+
+    let sleepStreak7hPlus = 0;
+    for (const d of streakRows) {
+      if (d.sleepHours >= 7) {
+        sleepStreak7hPlus += 1;
+      } else {
+        break;
+      }
+    }
+
+    let greenStreak = 0;
+    for (const d of streakRows) {
+      if (d.readiness >= 80) {
+        greenStreak += 1;
+      } else {
+        break;
+      }
+    }
+
     // simple recommendation logic
     let recommendation = "Solid balance overall. Keep doing what you’re doing.";
     if (averages.sleepHours < 7) {
@@ -137,7 +178,7 @@ router.get("/summary", async (req, res, next) => {
         "Readiness has been on the low side. Focus on sleep and lowering stress.";
     }
 
-    res.json({
+    return res.json({
       periodDays,
       hasData: true,
       averages,
@@ -152,6 +193,8 @@ router.get("/summary", async (req, res, next) => {
         zone: classifyReadinessZone(worst.readiness),
       },
       zones,
+      sleepStreak7hPlus,
+      greenStreak,
       recommendation,
     });
   } catch (e) {
