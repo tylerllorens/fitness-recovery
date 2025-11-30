@@ -9,6 +9,7 @@ import { errorHandler, notFound } from "./middleware/error.js";
 import authRouter from "./routes/auth.js";
 import trendsRouter from "./routes/trends.js";
 import metricDayRouter from "./metrics/metricDay.routes.js";
+import profileRouter from "./routes/profile.js";
 import { generalLimiter, authLimiter } from "./middleware/rateLimit.js";
 
 const app = express();
@@ -24,6 +25,7 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/metrics", metricDayRouter);
 app.use("/api/trends", trendsRouter);
+app.use("/api/profile", profileRouter);
 
 app.use(notFound);
 app.use(errorHandler);

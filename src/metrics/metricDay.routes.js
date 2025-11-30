@@ -4,6 +4,7 @@ import {
   upsertMetricDayHandler,
   getMetricDaysHandler,
   getMyLatestMetricDayHandler,
+  getMetricDayByDateHandler,
 } from "./metricDay.controller.js";
 
 const router = Router();
@@ -19,5 +20,8 @@ router.get("/", getMetricDaysHandler);
 
 // Get the most recent metric day
 router.get("/latest", getMyLatestMetricDayHandler);
+
+// Get metric day by date (?date=YYYY-MM-DD)
+router.get("/day", getMetricDayByDateHandler);
 
 export default router;

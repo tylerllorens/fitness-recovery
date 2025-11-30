@@ -12,6 +12,8 @@ model User {
   email     String   @unique
   password  String
   name      String
+  dob       DateTime? // date of birth (optional)
+  avatarUrl String?   // profile photo URL (optional)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   days      MetricDay[]

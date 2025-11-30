@@ -11,6 +11,8 @@ const upsertSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
+const dayQuerySchema = z.object({ date: z.string() });
+
 export async function getMetricDays(userId) {
   return prisma.metricDay.findMany({
     where: { userId },
@@ -44,5 +46,13 @@ export async function getLatestMetricDay(userId) {
   return prisma.metricDay.findFirst({
     where: { userId },
     orderBy: { date: "desc" },
+  });
+}
+
+export async function getMetricDayByDate(userId, dateString) {
+  const { date } = dayQuerySchema.parse({ date: dateString });
+  const day = new Date(date);
+  return prisma.metricDay.findUnique({
+    where: { userId_date: { userId, date: day } },
   });
 }
