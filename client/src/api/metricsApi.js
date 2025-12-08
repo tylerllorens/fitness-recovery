@@ -1,6 +1,6 @@
 import { apiClient } from "./apiClient.js";
 
-// GET /api/metrics/latest -> { item: { ...MetricDay } }
+// GET /api/metrics/latest
 export async function fetchLatestMetricDay() {
   const res = await apiClient("/api/metrics/latest", {
     method: "GET",
@@ -9,7 +9,7 @@ export async function fetchLatestMetricDay() {
   return res.item ?? res;
 }
 
-// GET /api/metrics -> { items: MetricDay[] }
+// GET /api/metrics
 export async function fetchMetricDays() {
   const res = await apiClient("/api/metrics", {
     method: "GET",
@@ -18,7 +18,7 @@ export async function fetchMetricDays() {
   return res.items ?? [];
 }
 
-// GET /api/metrics/:date -> { item: MetricDay } or { error: ... }
+// GET /api/metrics/:date
 export async function fetchMetricDayByDate(date) {
   // date should be "YYYY-MM-DD"
   const res = await apiClient(`/api/metrics/${date}`, {
@@ -28,7 +28,7 @@ export async function fetchMetricDayByDate(date) {
   return res.item ?? null;
 }
 
-// POST /api/metrics (upsert) -> { item: MetricDay }
+// POST /api/metrics (upsert)
 export async function upsertMetricDay(payload) {
   // payload: { date, sleepHours, rhr, hrv, strain, notes? }
   const res = await apiClient("/api/metrics", {
