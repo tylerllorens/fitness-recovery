@@ -6,7 +6,7 @@ export async function fetchLatestMetricDay() {
     method: "GET",
   });
 
-  return res.item ?? res;
+  return res?.data?.item ?? res.item ?? res;
 }
 
 // GET /api/metrics
@@ -15,17 +15,17 @@ export async function fetchMetricDays() {
     method: "GET",
   });
 
-  return res.items ?? [];
+  return res?.data?.items ?? res?.items ?? [];
 }
 
 // GET /api/metrics/:date
 export async function fetchMetricDayByDate(date) {
   // date should be "YYYY-MM-DD"
-  const res = await apiClient(`/api/metrics/${date}`, {
+  const res = await apiClient(`/api/metrics/day?date=${date}`, {
     method: "GET",
   });
 
-  return res.item ?? null;
+  return res?.data?.item ?? res?.item ?? null;
 }
 
 // POST /api/metrics (upsert)
@@ -36,5 +36,5 @@ export async function upsertMetricDay(payload) {
     body: JSON.stringify(payload),
   });
 
-  return res.item ?? res;
+  return res?.data?.item ?? res?.item ?? res;
 }

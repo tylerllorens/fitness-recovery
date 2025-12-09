@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import MetricsCalendar from "../components/MetricsCalendar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import Loader from "../components/Loader.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
-import { fetchMetricDays, upsertMetricDay } from "../api/metricsApi.js";
+import {
+  fetchMetricDays,
+  fetchMetricDayByDate,
+  upsertMetricDay,
+} from "../api/metricsApi.js";
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -43,6 +48,11 @@ function MetricsPage() {
   const [strain, setStrain] = useState("");
   const [notes, setNotes] = useState("");
 
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const daysWithData = useMemo(() => {
+    return new Set(days.map((d) => isoToInput(d.date)));
+  }, [days]);
+
   // Redirect if not authed
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -77,13 +87,18 @@ function MetricsPage() {
           setHrv(String(mostRecent.hrv));
           setStrain(String(mostRecent.strain));
           setNotes(mostRecent.notes || "");
+          setCurrentMonth(new Date(mostRecent.date));
         } else {
           // No existing days: preset date to today
           const today = new Date();
           const yyyy = today.getFullYear();
           const mm = String(today.getMonth() + 1).padStart(2, "0");
           const dd = String(today.getDate()).padStart(2, "0");
-          setDate(`${yyyy}-${mm}-${dd}`);
+          const todayStr = `${yyyy}-${mm}-${dd}`;
+          setDate(todayStr);
+
+          //start calendar on current month.
+          setCurrentMonth(today);
         }
       } catch (e) {
         if (cancelled) return;
@@ -108,6 +123,52 @@ function MetricsPage() {
     setHrv(String(day.hrv));
     setStrain(String(day.strain));
     setNotes(day.notes || "");
+  }
+
+  async function handleSelectDateFromCalendar(dateKey) {
+    // dateKey is "YYYY-MM-DD"
+    setDate(dateKey);
+
+    const [year, month, day] = dateKey.split("-");
+    setCurrentMonth(new Date(Number(year), Number(month) - 1, Number(day)));
+
+    // Check if already in the current 30-day list
+    const existing = days.find((d) => isoToInput(d.date) === dateKey);
+    if (existing) {
+      handleSelectDay(existing);
+      return;
+    }
+
+    // If not in the current 30-day list, try to fetch that specific day
+    try {
+      const fetched = await fetchMetricDayByDate(dateKey);
+      if (fetched) {
+        setDays((prev) => {
+          const next = [fetched, ...prev];
+          next.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+          return next;
+        });
+        handleSelectDay(fetched);
+      } else {
+        // No data: clear selectedDay & reset fields
+        setSelectedDay(null);
+        setSleepHours("");
+        setRhr("");
+        setHrv("");
+        setStrain("");
+        setNotes("");
+      }
+    } catch (e) {
+      // Assume no data for that day
+      setSelectedDay(null);
+      setSleepHours("");
+      setRhr("");
+      setHrv("");
+      setStrain("");
+      setNotes("");
+    }
   }
 
   async function handleSubmit(e) {
@@ -185,6 +246,17 @@ function MetricsPage() {
         </p>
 
         <ErrorMessage message={error} />
+
+        {/* NEW: Calendar */}
+        <div style={{ marginBottom: "1rem" }}>
+          <MetricsCalendar
+            currentMonth={currentMonth}
+            onMonthChange={setCurrentMonth}
+            selectedDate={date} // "YYYY-MM-DD"
+            onSelectDate={handleSelectDateFromCalendar}
+            daysWithData={daysWithData}
+          />
+        </div>
 
         <div
           style={{
