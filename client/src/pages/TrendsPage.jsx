@@ -8,6 +8,7 @@ import {
   fetchTrends7d,
   fetchTrends28d,
 } from "../api/trendsApi.js";
+import ReadinessChart from "../components/ReadinessChart.jsx";
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -198,6 +199,18 @@ function TrendsPage() {
           No data in this period. Log some metrics to see trends.
         </p>
       )}
+
+      {/* Readiness chart */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <ReadinessChart
+          data={series}
+          title={
+            range === "7d"
+              ? "Readiness (last 7 days)"
+              : "Readiness (last 28 days)"
+          }
+        />
+      </div>
 
       {/* Zones + streaks + recommendation */}
       {summary && summary.hasData && (

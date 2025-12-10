@@ -6,7 +6,7 @@ export async function fetchSummary(days = 7) {
     method: "GET",
   });
 
-  return res; // { periodDays, hasData, averages, bestDay, worstDay, zones, ... }
+  return res?.data ?? res; // { periodDays, hasData, averages, bestDay, worstDay, zones, ... }
 }
 
 // GET /api/trends/7d
@@ -15,7 +15,11 @@ export async function fetchTrends7d() {
     method: "GET",
   });
 
-  return res.data ?? [];
+  return (
+    res?.data?.items ??
+    res?.items ??
+    (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [])
+  );
 }
 
 // GET /api/trends/28d
@@ -24,5 +28,9 @@ export async function fetchTrends28d() {
     method: "GET",
   });
 
-  return res.data ?? [];
+  return (
+    res?.data?.items ??
+    res?.items ??
+    (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [])
+  );
 }
