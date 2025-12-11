@@ -6,6 +6,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Area,
+  AreaChart,
 } from "recharts";
 
 function formatDateLabel(iso) {
@@ -17,18 +19,87 @@ function formatDateLabel(iso) {
   });
 }
 
-// simple zone → color mapping
 function zoneColor(zone) {
   switch (zone) {
     case "green":
-      return "#16a34a"; // green
+      return "#4a7c59";
     case "yellow":
-      return "#ca8a04"; // amber
+      return "#f59e0b";
     case "red":
-      return "#dc2626"; // red
+      return "#ef4444";
     default:
-      return "#6b7280"; // gray fallback
+      return "#9ca3af";
   }
+}
+
+function CustomTooltip({ active, payload }) {
+  if (!active || !payload || !payload.length) return null;
+
+  const data = payload[0].payload;
+  const zone = data.zone || "unknown";
+  const color = zoneColor(zone);
+
+  return (
+    <div
+      style={{
+        background: "#ffffff",
+        border: `2px solid ${color}`,
+        borderRadius: "12px",
+        padding: "1rem",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      }}
+    >
+      <p
+        style={{
+          fontSize: "13px",
+          fontWeight: "600",
+          color: "#6b7280",
+          margin: 0,
+          marginBottom: "0.5rem",
+        }}
+      >
+        {formatDateLabel(data.date)}
+      </p>
+      <div style={{ display: "flex", alignItems: "baseline", gap: "0.25rem" }}>
+        <span
+          style={{
+            fontSize: "28px",
+            fontWeight: "800",
+            color: color,
+            lineHeight: 1,
+          }}
+        >
+          {data.readiness}
+        </span>
+        <span style={{ fontSize: "14px", color: "#9ca3af", fontWeight: "600" }}>
+          /100
+        </span>
+      </div>
+      <div
+        style={{
+          marginTop: "0.5rem",
+          paddingTop: "0.5rem",
+          borderTop: "1px solid #e5e7eb",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            padding: "0.25rem 0.75rem",
+            borderRadius: "999px",
+            background: `${color}20`,
+            color: color,
+            fontSize: "11px",
+            fontWeight: "700",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          {zone} zone
+        </span>
+      </div>
+    </div>
+  );
 }
 
 export default function ReadinessChart({ data, title = "Readiness trend" }) {
@@ -36,16 +107,33 @@ export default function ReadinessChart({ data, title = "Readiness trend" }) {
     return (
       <div
         style={{
-          border: "1px solid #e5e7eb",
-          borderRadius: "8px",
-          padding: "0.75rem 1rem",
-          background: "#fff",
-          fontSize: 14,
-          color: "#6b7280",
+          padding: "3rem",
+          textAlign: "center",
+          background: "#f9fafb",
+          borderRadius: "12px",
+          border: "2px dashed #e5e7eb",
         }}
       >
-        <p style={{ margin: 0 }}>{title}</p>
-        <p style={{ marginTop: "0.35rem" }}>No trend data available yet.</p>
+        <p
+          style={{
+            fontSize: "16px",
+            color: "#9ca3af",
+            margin: 0,
+            fontWeight: "500",
+          }}
+        >
+          No trend data available yet
+        </p>
+        <p
+          style={{
+            fontSize: "14px",
+            color: "#d1d5db",
+            margin: 0,
+            marginTop: "0.25rem",
+          }}
+        >
+          Log some metrics to see your readiness trend
+        </p>
       </div>
     );
   }
@@ -56,96 +144,165 @@ export default function ReadinessChart({ data, title = "Readiness trend" }) {
   }));
 
   return (
-    <div
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: "8px",
-        padding: "0.75rem 1rem",
-        background: "#fff",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "0.5rem",
-        }}
-      >
-        <h2 style={{ fontSize: 15, margin: 0 }}>{title}</h2>
-        {/* simple legend */}
-        <div style={{ display: "flex", gap: "0.75rem", fontSize: 11 }}>
-          <LegendDot color="#16a34a" label="Green" />
-          <LegendDot color="#ca8a04" label="Yellow" />
-          <LegendDot color="#dc2626" label="Red" />
-        </div>
-      </div>
+    <div>
+      {title && (
+        <h2
+          style={{
+            fontSize: "16px",
+            fontWeight: "700",
+            color: "#111827",
+            margin: 0,
+            marginBottom: "1.5rem",
+          }}
+        >
+          {title}
+        </h2>
+      )}
 
-      <div style={{ width: "100%", height: 240 }}>
+      <div style={{ width: "100%", height: 320 }}>
         <ResponsiveContainer>
-          <LineChart
+          <AreaChart
             data={chartData}
-            margin={{ top: 10, right: 16, bottom: 0, left: 0 }}
+            margin={{ top: 10, right: 20, bottom: 10, left: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} tickMargin={8} />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} tickMargin={8} />
-            <Tooltip
-              formatter={(value, name, props) => {
-                if (name === "readiness") {
-                  return [`${value}/100`, "Readiness"];
-                }
-                return [value, name];
-              }}
-              labelFormatter={(label, payload) => {
-                if (!payload || payload.length === 0) return label;
-                const item = payload[0].payload;
-                const z = item.zone ?? "unknown";
-                return `${formatDateLabel(item.date)} — ${z}`;
-              }}
+            <defs>
+              <linearGradient
+                id="readinessGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop offset="5%" stopColor="#4a7c59" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#4a7c59" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#e5e7eb"
+              vertical={false}
             />
+
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 12, fill: "#9ca3af", fontWeight: "500" }}
+              tickMargin={12}
+              axisLine={{ stroke: "#e5e7eb" }}
+              tickLine={false}
+            />
+
+            <YAxis
+              domain={[0, 100]}
+              tick={{ fontSize: 12, fill: "#9ca3af", fontWeight: "500" }}
+              tickMargin={12}
+              axisLine={{ stroke: "#e5e7eb" }}
+              tickLine={false}
+              ticks={[0, 25, 50, 75, 100]}
+            />
+
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ stroke: "#d1d5db", strokeWidth: 2 }}
+            />
+
+            <Area
+              type="monotone"
+              dataKey="readiness"
+              stroke="#4a7c59"
+              strokeWidth={3}
+              fill="url(#readinessGradient)"
+              animationDuration={1000}
+            />
+
             <Line
               type="monotone"
               dataKey="readiness"
-              stroke="#111827"
-              strokeWidth={2}
-              // customize dots by zone color
+              stroke="#4a7c59"
+              strokeWidth={3}
               dot={(props) => {
                 const { cx, cy, payload } = props;
                 const color = zoneColor(payload.zone);
                 return (
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={4}
-                    fill={color}
-                    stroke="#ffffff"
-                    strokeWidth={1}
-                  />
+                  <g>
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={6}
+                      fill={color}
+                      stroke="#ffffff"
+                      strokeWidth={3}
+                    />
+                  </g>
                 );
               }}
-              activeDot={{ r: 6 }}
+              activeDot={{
+                r: 8,
+                strokeWidth: 3,
+                stroke: "#ffffff",
+              }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
-    </div>
-  );
-}
 
-// small legend pill
-function LegendDot({ color, label }) {
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-      <span
+      {/* Legend */}
+      <div
         style={{
-          width: 8,
-          height: 8,
-          borderRadius: "999px",
-          background: color,
+          display: "flex",
+          justifyContent: "center",
+          gap: "2rem",
+          marginTop: "1.5rem",
+          paddingTop: "1rem",
+          borderTop: "1px solid #e5e7eb",
         }}
-      />
-      <span>{label}</span>
-    </span>
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              background: "#4a7c59",
+            }}
+          />
+          <span
+            style={{ fontSize: "13px", fontWeight: "600", color: "#6b7280" }}
+          >
+            Green Zone (70-100)
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              background: "#f59e0b",
+            }}
+          />
+          <span
+            style={{ fontSize: "13px", fontWeight: "600", color: "#6b7280" }}
+          >
+            Yellow Zone (50-69)
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              background: "#ef4444",
+            }}
+          />
+          <span
+            style={{ fontSize: "13px", fontWeight: "600", color: "#6b7280" }}
+          >
+            Red Zone (0-49)
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
