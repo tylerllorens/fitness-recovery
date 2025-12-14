@@ -174,7 +174,7 @@ function LandingPage() {
             readiness and train smarter.
           </p>
           <button
-            onClick={() => setShowLoginModal(true)}
+            onClick={() => navigate("/register")}
             style={{
               padding: "1.25rem 3rem",
               borderRadius: "12px",
@@ -543,7 +543,7 @@ function LandingPage() {
             Start tracking your recovery today and train with confidence.
           </p>
           <button
-            onClick={() => setShowLoginModal(true)}
+            onClick={() => navigate("/register")}
             style={{
               padding: "1.25rem 3rem",
               borderRadius: "12px",
@@ -796,6 +796,35 @@ function LandingPage() {
               >
                 {submitting ? "Logging in..." : "Log In"}
               </button>
+
+              {/* Register Link */}
+              <p
+                style={{
+                  textAlign: "center",
+                  marginTop: "1.5rem",
+                  fontSize: "14px",
+                  color: "#6b7280",
+                }}
+              >
+                Don't have an account?{" "}
+                <button
+                  onClick={() => {
+                    setShowLoginModal(false);
+                    navigate("/register");
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#4a7c59",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Register here
+                </button>
+              </p>
             </div>
           </div>
         </div>

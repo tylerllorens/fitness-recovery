@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import Loader from "../components/Loader.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
@@ -130,6 +130,27 @@ function LoginPage() {
             </button>
           </form>
         )}
+
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: "1.5rem",
+            fontSize: "14px",
+            color: "#6b7280",
+          }}
+        >
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            style={{
+              color: "#4a7c59",
+              fontWeight: "600",
+              textDecoration: "none",
+            }}
+          >
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );

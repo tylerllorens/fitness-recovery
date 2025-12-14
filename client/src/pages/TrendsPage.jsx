@@ -181,7 +181,7 @@ function TrendsPage() {
               transition: "all 0.2s ease",
             }}
           >
-            7 Days
+            1 Week
           </button>
           <button
             type="button"
@@ -198,7 +198,7 @@ function TrendsPage() {
               transition: "all 0.2s ease",
             }}
           >
-            28 Days
+            1 Month
           </button>
         </div>
       </div>
@@ -263,8 +263,8 @@ function TrendsPage() {
                 data={series}
                 title={
                   range === "7d"
-                    ? "Readiness (Last 7 Days)"
-                    : "Readiness (Last 28 Days)"
+                    ? "Readiness (Last Week)"
+                    : "Readiness (Last Month)"
                 }
               />
             </div>
