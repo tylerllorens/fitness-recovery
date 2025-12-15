@@ -103,26 +103,59 @@ router.get("/summary", async (req, res, next) => {
       });
     }
 
-    // calculate averages
-    const sum = data.reduce(
+    // Calculate averages - only count days where metric exists
+    const sums = data.reduce(
       (acc, d) => {
-        acc.sleepHours += d.sleepHours;
-        acc.rhr += d.rhr;
-        acc.hrv += d.hrv;
-        acc.strain += d.strain;
-        acc.readiness += d.readiness;
+        if (d.sleepHours != null) {
+          acc.sleepHours.total += d.sleepHours;
+          acc.sleepHours.count += 1;
+        }
+        if (d.rhr != null) {
+          acc.rhr.total += d.rhr;
+          acc.rhr.count += 1;
+        }
+        if (d.hrv != null) {
+          acc.hrv.total += d.hrv;
+          acc.hrv.count += 1;
+        }
+        if (d.strain != null) {
+          acc.strain.total += d.strain;
+          acc.strain.count += 1;
+        }
+        acc.readiness.total += d.readiness;
+        acc.readiness.count += 1;
         return acc;
       },
-      { sleepHours: 0, rhr: 0, hrv: 0, strain: 0, readiness: 0 }
+      {
+        sleepHours: { total: 0, count: 0 },
+        rhr: { total: 0, count: 0 },
+        hrv: { total: 0, count: 0 },
+        strain: { total: 0, count: 0 },
+        readiness: { total: 0, count: 0 },
+      }
     );
 
-    const n = data.length;
     const averages = {
-      sleepHours: +(sum.sleepHours / n).toFixed(2),
-      rhr: +(sum.rhr / n).toFixed(1),
-      hrv: +(sum.hrv / n).toFixed(1),
-      strain: +(sum.strain / n).toFixed(1),
-      readiness: Math.round(sum.readiness / n),
+      sleepHours:
+        sums.sleepHours.count > 0
+          ? +(sums.sleepHours.total / sums.sleepHours.count).toFixed(2)
+          : null,
+      rhr:
+        sums.rhr.count > 0
+          ? +(sums.rhr.total / sums.rhr.count).toFixed(1)
+          : null,
+      hrv:
+        sums.hrv.count > 0
+          ? +(sums.hrv.total / sums.hrv.count).toFixed(1)
+          : null,
+      strain:
+        sums.strain.count > 0
+          ? +(sums.strain.total / sums.strain.count).toFixed(1)
+          : null,
+      readiness:
+        sums.readiness.count > 0
+          ? Math.round(sums.readiness.total / sums.readiness.count)
+          : 0,
     };
 
     // best / worst day

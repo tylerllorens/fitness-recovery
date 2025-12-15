@@ -1,17 +1,49 @@
-// Turn each metric into a 0–100 score, then blend them with weights to get a final readiness
-// Sleep contributes 40%, HRV contributes 30%, RHR contributes 15%, Strain contributes 15%
-
+/**
+ * Compute readiness score (0-100) from available metrics
+ * Handles missing/null values gracefully by calculating weighted average
+ * of only the metrics that are present
+ */
 export async function computeReadiness({ sleepHours, rhr, hrv, strain }) {
-  const weights = { sleep: 0.4, hrv: 0.3, rhr: 0.15, strain: 0.15 };
-  const sleepScore = Math.min((sleepHours / 8) * 100, 100); // 8h target
-  const hrvScore = Math.min((hrv / 80) * 100, 100); // 80ms target baseline
-  const rhrScore = 100 - Math.min(Math.max((rhr - 50) * 2, 0), 100); // best near 50 bpm
-  const strainScore = 100 - Math.min((strain / 21) * 100, 100); // less strain → more readiness
-  const raw =
-    sleepScore * weights.sleep +
-    hrvScore * weights.hrv +
-    rhrScore * weights.rhr +
-    strainScore * weights.strain;
-  // Final readiness score rounded to nearest integer
-  return Math.round(raw);
+  // Default weights - will be customizable per user later
+  const weights = {
+    sleep: 0.4,
+    hrv: 0.3,
+    rhr: 0.15,
+    strain: 0.15,
+  };
+
+  // Calculate individual scores (null if metric missing)
+  const sleepScore =
+    sleepHours != null ? Math.min((sleepHours / 8) * 100, 100) : null;
+
+  const hrvScore = hrv != null ? Math.min((hrv / 80) * 100, 100) : null;
+
+  const rhrScore =
+    rhr != null ? Math.max(0, Math.min(100 - (rhr - 50) * 2, 100)) : null;
+
+  const strainScore =
+    strain != null ? Math.max(0, 100 - (strain / 21) * 100) : null;
+
+  // Collect available scores with their weights
+  const availableScores = [
+    { score: sleepScore, weight: weights.sleep },
+    { score: hrvScore, weight: weights.hrv },
+    { score: rhrScore, weight: weights.rhr },
+    { score: strainScore, weight: weights.strain },
+  ].filter((item) => item.score !== null);
+
+  // If no metrics at all, return 0
+  if (availableScores.length === 0) return 0;
+
+  // Calculate weighted average using only available metrics
+  const totalWeight = availableScores.reduce(
+    (sum, item) => sum + item.weight,
+    0
+  );
+  const weightedSum = availableScores.reduce(
+    (sum, item) => sum + item.score * item.weight,
+    0
+  );
+
+  return Math.round(weightedSum / totalWeight);
 }

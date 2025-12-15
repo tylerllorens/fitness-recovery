@@ -25,11 +25,11 @@ model MetricDay {
   id         String   @id @default(cuid())
   userId     String
   date       DateTime
-  // inputs
-  sleepHours Float     @default(0)
-  rhr        Float     @default(0) // resting heart rate (bpm)
-  hrv        Float     @default(0) // ms (rMSSD equivalent)
-  strain     Float     @default(0) // 0-21 normalized training load
+  // inputs - NOW NULLABLE
+  sleepHours Float?    
+  rhr        Float?     
+  hrv        Float?     
+  strain     Float?     
   // outputs
   readiness  Int       @default(0) // 0-100
   notes      String?

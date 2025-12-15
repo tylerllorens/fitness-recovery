@@ -13,7 +13,7 @@ function LoginPage() {
     error: authError,
   } = useAuth();
 
-  const [email, setEmail] = useState("tyler@dev.com"); // default for faster testing
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState(null);
