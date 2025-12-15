@@ -173,10 +173,11 @@ router.get("/summary", async (req, res, next) => {
       zones[zone] += 1;
     }
 
-    // full history streaks calculation
+    // full history streaks calculation (limited to last year for performance)
     const streakRows = await prisma.metricDay.findMany({
       where: { userId: req.user.id },
       orderBy: { date: "desc" },
+      take: 365, // Only check last 365 days
       select: { date: true, sleepHours: true, readiness: true },
     });
 
