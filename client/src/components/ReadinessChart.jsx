@@ -269,7 +269,7 @@ export default function ReadinessChart({ data, title = "Readiness trend" }) {
           <span
             style={{ fontSize: "13px", fontWeight: "600", color: "#6b7280" }}
           >
-            Green Zone (70-100)
+            Green Zone (80-100)
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -284,7 +284,7 @@ export default function ReadinessChart({ data, title = "Readiness trend" }) {
           <span
             style={{ fontSize: "13px", fontWeight: "600", color: "#6b7280" }}
           >
-            Yellow Zone (50-69)
+            Yellow Zone (60-79)
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -299,7 +299,7 @@ export default function ReadinessChart({ data, title = "Readiness trend" }) {
           <span
             style={{ fontSize: "13px", fontWeight: "600", color: "#6b7280" }}
           >
-            Red Zone (0-49)
+            Red Zone (0-59)
           </span>
         </div>
       </div>

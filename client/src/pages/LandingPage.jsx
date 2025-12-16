@@ -16,7 +16,7 @@ function LandingPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [email, setEmail] = useState("tyler@dev.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);

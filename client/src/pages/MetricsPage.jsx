@@ -78,10 +78,12 @@ function MetricsPage() {
           setSelectedDay(mostRecent);
 
           setDate(isoToInput(mostRecent.date));
-          setSleepHours(String(mostRecent.sleepHours));
-          setRhr(String(mostRecent.rhr));
-          setHrv(String(mostRecent.hrv));
-          setStrain(String(mostRecent.strain));
+          setSleepHours(
+            mostRecent.sleepHours != null ? String(mostRecent.sleepHours) : ""
+          );
+          setRhr(mostRecent.rhr != null ? String(mostRecent.rhr) : "");
+          setHrv(mostRecent.hrv != null ? String(mostRecent.hrv) : "");
+          setStrain(mostRecent.strain != null ? String(mostRecent.strain) : "");
           setNotes(mostRecent.notes || "");
           setCurrentMonth(new Date(mostRecent.date));
         } else {
@@ -111,10 +113,10 @@ function MetricsPage() {
   function handleSelectDay(day) {
     setSelectedDay(day);
     setDate(isoToInput(day.date));
-    setSleepHours(String(day.sleepHours));
-    setRhr(String(day.rhr));
-    setHrv(String(day.hrv));
-    setStrain(String(day.strain));
+    setSleepHours(day.sleepHours != null ? String(day.sleepHours) : "");
+    setRhr(day.rhr != null ? String(day.rhr) : "");
+    setHrv(day.hrv != null ? String(day.hrv) : "");
+    setStrain(day.strain != null ? String(day.strain) : "");
     setNotes(day.notes || "");
   }
 
@@ -167,10 +169,10 @@ function MetricsPage() {
     try {
       const payload = {
         date,
-        sleepHours: Number(sleepHours),
-        rhr: Number(rhr),
-        hrv: Number(hrv),
-        strain: Number(strain),
+        sleepHours: sleepHours !== "" ? Number(sleepHours) : null,
+        rhr: rhr !== "" ? Number(rhr) : null,
+        hrv: hrv !== "" ? Number(hrv) : null,
+        strain: strain !== "" ? Number(strain) : null,
         notes: notes.trim() || null,
       };
 
@@ -652,7 +654,6 @@ function MetricsPage() {
                   max="24"
                   value={sleepHours}
                   onChange={(e) => setSleepHours(e.target.value)}
-                  required
                   style={{
                     width: "100%",
                     padding: "0.75rem 1rem",
@@ -693,7 +694,6 @@ function MetricsPage() {
                   max="120"
                   value={rhr}
                   onChange={(e) => setRhr(e.target.value)}
-                  required
                   style={{
                     width: "100%",
                     padding: "0.75rem 1rem",
@@ -734,7 +734,6 @@ function MetricsPage() {
                   max="300"
                   value={hrv}
                   onChange={(e) => setHrv(e.target.value)}
-                  required
                   style={{
                     width: "100%",
                     padding: "0.75rem 1rem",
@@ -776,7 +775,6 @@ function MetricsPage() {
                   step="0.1"
                   value={strain}
                   onChange={(e) => setStrain(e.target.value)}
-                  required
                   style={{
                     width: "100%",
                     padding: "0.75rem 1rem",

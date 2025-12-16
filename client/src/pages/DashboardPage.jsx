@@ -248,9 +248,9 @@ function DashboardPage() {
 
   // Determine readiness zone
   const readinessZone =
-    latest?.readiness >= 70
+    latest?.readiness >= 80
       ? "green"
-      : latest?.readiness >= 50
+      : latest?.readiness >= 60
       ? "yellow"
       : "red";
   const zoneColors = {
@@ -418,31 +418,32 @@ function DashboardPage() {
               <MetricCard
                 icon={Moon}
                 label="Sleep"
-                value={latest.sleepHours}
-                unit="h"
+                value={latest.sleepHours ?? "—"}
+                unit={latest.sleepHours != null ? "h" : ""}
                 trend="up"
                 color="#8b5cf6"
               />
               <MetricCard
                 icon={Heart}
                 label="Resting HR"
-                value={latest.rhr}
-                unit="bpm"
+                value={latest.rhr ?? "—"}
+                unit={latest.rhr != null ? "bpm" : ""}
                 trend="down"
                 color="#ef4444"
               />
               <MetricCard
                 icon={Activity}
                 label="HRV"
-                value={latest.hrv}
-                unit="ms"
+                value={latest.hrv ?? "—"}
+                unit={latest.hrv != null ? "ms" : ""}
                 trend="up"
                 color="#3b82f6"
               />
               <MetricCard
                 icon={Zap}
                 label="Strain"
-                value={latest.strain}
+                value={latest.strain ?? "—"}
+                unit=""
                 color="#f59e0b"
               />
             </div>
