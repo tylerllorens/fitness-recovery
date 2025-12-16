@@ -32,7 +32,9 @@ export async function upsertMetricDay(userId, payload) {
     notes,
   } = validatedPayload;
 
-  const date = new Date(dateString);
+  // Parse as local date, not UTC
+  const [year, month, day] = dateString.split("-");
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
   const readiness = await computeReadiness({ sleepHours, rhr, hrv, strain });
 
   return prisma.metricDay.upsert({
