@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Loader from "../components/Loader.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
 import EmptyState from "../components/EmptyState.jsx";
+import QuickAddModal from "../components/QuickAddModal.jsx";
 import { fetchLatestMetricDay } from "../api/metricsApi.js";
 import { fetchSummary } from "../api/trendsApi.js";
 import {
@@ -13,17 +14,9 @@ import {
   Heart,
   Activity,
   Zap,
+  Save,
+  Edit,
 } from "lucide-react";
-
-function formatDate(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function CircularProgress({ value, size = 200, strokeWidth = 12 }) {
   const radius = (size - strokeWidth) / 2;
@@ -194,6 +187,7 @@ function DashboardPage() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -264,18 +258,59 @@ function DashboardPage() {
     <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: "3rem" }}>
-        <h1
+        <div
           style={{
-            fontSize: "48px",
-            fontWeight: "800",
-            margin: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: "0.5rem",
-            color: "#111827",
-            letterSpacing: "-0.02em",
           }}
         >
-          Welcome back{user?.name ? `, ${user.name}` : ""}.
-        </h1>
+          <h1
+            style={{
+              fontSize: "48px",
+              fontWeight: "800",
+              margin: 0,
+              color: "#111827",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Welcome back{user?.name ? `, ${user.name}` : ""}.
+          </h1>
+
+          {/* Quick Add Button */}
+          <button
+            onClick={() => setShowQuickAdd(true)}
+            style={{
+              padding: "0.875rem 1.5rem",
+              borderRadius: "8px",
+              border: "none",
+              background: "linear-gradient(135deg, #4a7c59 0%, #6b9e78 100%)",
+              color: "#ffffff",
+              fontSize: "15px",
+              fontWeight: "700",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              boxShadow: "0 2px 8px rgba(74, 124, 89, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow =
+                "0 4px 12px rgba(74, 124, 89, 0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow =
+                "0 2px 8px rgba(74, 124, 89, 0.3)";
+            }}
+          >
+            {latest ? <Edit size={18} /> : <Save size={18} />}
+            {latest ? "Edit Today" : "Log Today"}
+          </button>
+        </div>
         <p style={{ fontSize: "18px", color: "#6b7280", margin: 0 }}>
           {new Date().toLocaleDateString(undefined, {
             weekday: "long",
@@ -927,6 +962,24 @@ function DashboardPage() {
           </>
         )}
       </div>
+      {/* Quick Add Modal */}
+      <QuickAddModal
+        isOpen={showQuickAdd}
+        onClose={() => setShowQuickAdd(false)}
+        onSuccess={async () => {
+          // Reload dashboard data after successful save
+          try {
+            const [latestDay, weeklySummary] = await Promise.all([
+              fetchLatestMetricDay(),
+              fetchSummary(7),
+            ]);
+            setLatest(latestDay);
+            setSummary(weeklySummary);
+          } catch (e) {
+            // Ignore errors on refresh
+          }
+        }}
+      />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
   fetchTrends28d,
 } from "../api/trendsApi.js";
 import ReadinessChart from "../components/ReadinessChart.jsx";
-import { TrendingUp, TrendingDown, Award, Target } from "lucide-react";
+import { Award, Target } from "lucide-react";
 import EmptyState from "../components/EmptyState.jsx";
 
 function formatDate(iso) {
