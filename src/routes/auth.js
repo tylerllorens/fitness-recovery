@@ -65,6 +65,7 @@ router.post("/login", authLimiter, async (req, res, next) => {
 
     // Check password
     const valid = await bcrypt.compare(password, user.password);
+
     if (!valid) {
       return sendError(res, "Invalid email or password", 401);
     }

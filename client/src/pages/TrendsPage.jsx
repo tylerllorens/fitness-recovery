@@ -10,6 +10,7 @@ import {
 } from "../api/trendsApi.js";
 import ReadinessChart from "../components/ReadinessChart.jsx";
 import { TrendingUp, TrendingDown, Award, Target } from "lucide-react";
+import EmptyState from "../components/EmptyState.jsx";
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -204,19 +205,13 @@ function TrendsPage() {
       </div>
 
       {!hasData ? (
-        <div
-          style={{
-            padding: "4rem",
-            background: "#ffffff",
-            borderRadius: "16px",
-            border: "2px dashed #e5e7eb",
-            textAlign: "center",
-          }}
-        >
-          <p style={{ fontSize: "18px", color: "#6b7280", margin: 0 }}>
-            No data in this period. Log some metrics to see trends.
-          </p>
-        </div>
+        <EmptyState
+          icon="📈"
+          title="No Trend Data Available"
+          description="You need at least a few days of data to see meaningful trends. Start by logging your daily metrics and come back here to see your recovery patterns over time."
+          actionText="Go to Metrics"
+          actionPath="/metrics"
+        />
       ) : (
         <>
           {/* Main Chart Section */}

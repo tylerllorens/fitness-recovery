@@ -52,8 +52,6 @@ export function AuthProvider({ children }) {
     try {
       const loginData = await loginRequest({ email, password });
 
-      console.log("Login data received:", loginData); // backend testing
-
       const accessToken = loginData?.data?.accessToken;
       const loggedInUser = loginData?.data?.user;
 

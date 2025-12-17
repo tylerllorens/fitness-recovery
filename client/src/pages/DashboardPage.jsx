@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import Loader from "../components/Loader.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 import { fetchLatestMetricDay } from "../api/metricsApi.js";
 import { fetchSummary } from "../api/trendsApi.js";
 import {
@@ -488,20 +489,13 @@ function DashboardPage() {
           )}
         </>
       ) : (
-        <div
-          style={{
-            padding: "4rem",
-            background: "#ffffff",
-            borderRadius: "16px",
-            border: "2px dashed #e5e7eb",
-            textAlign: "center",
-            marginBottom: "2rem",
-          }}
-        >
-          <p style={{ fontSize: "18px", color: "#6b7280", margin: 0 }}>
-            No data for today yet. Log your metrics to see your readiness!
-          </p>
-        </div>
+        <EmptyState
+          icon="📊"
+          title="No Data Yet"
+          description="Start tracking your recovery by logging your first day of metrics. Track sleep, HRV, heart rate, and strain to get your readiness score."
+          actionText="Log Today's Metrics"
+          actionPath="/metrics"
+        />
       )}
 
       {/* 7-Day Summary */}
