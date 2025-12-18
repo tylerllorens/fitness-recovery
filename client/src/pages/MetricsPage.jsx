@@ -9,7 +9,7 @@ import {
   fetchMetricDayByDate,
   upsertMetricDay,
 } from "../api/metricsApi.js";
-import { Calendar, Save, Copy } from "lucide-react";
+import { Calendar, Save, Copy, Download } from "lucide-react";
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -151,6 +151,61 @@ function MetricsPage() {
     }
   }
 
+  function handleExportCSV() {
+    if (days.length === 0) {
+      setError("No data to export");
+      return;
+    }
+
+    // CSV header
+    const headers = [
+      "Date",
+      "Sleep (hours)",
+      "RHR (bpm)",
+      "HRV (ms)",
+      "Strain",
+      "Readiness",
+      "Notes",
+    ];
+
+    // CSV rows
+    const rows = days.map((day) => {
+      const dateStr = new Date(day.date).toLocaleDateString("en-US");
+      return [
+        dateStr,
+        day.sleepHours ?? "",
+        day.rhr ?? "",
+        day.hrv ?? "",
+        day.strain ?? "",
+        day.readiness ?? "",
+        day.notes ? `"${day.notes.replace(/"/g, '""')}"` : "", // Escape quotes in notes
+      ];
+    });
+
+    // Combine into CSV string
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    const today = new Date();
+    const filename = `recovery-data-${today.getFullYear()}-${String(
+      today.getMonth() + 1
+    ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}.csv`;
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   async function handleSelectDateFromCalendar(dateKey) {
     setDate(dateKey);
 
@@ -249,18 +304,58 @@ function MetricsPage() {
     <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: "2.5rem" }}>
-        <h1
+        <div
           style={{
-            fontSize: "48px",
-            fontWeight: "800",
-            margin: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: "0.5rem",
-            color: "#111827",
-            letterSpacing: "-0.02em",
           }}
         >
-          Metrics
-        </h1>
+          <h1
+            style={{
+              fontSize: "48px",
+              fontWeight: "800",
+              margin: 0,
+              color: "#111827",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Metrics
+          </h1>
+
+          {/* Export Button */}
+          {days.length > 0 && (
+            <button
+              onClick={handleExportCSV}
+              style={{
+                padding: "0.75rem 1.25rem",
+                borderRadius: "8px",
+                border: "1px solid #d1d5db",
+                background: "#ffffff",
+                color: "#374151",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#f9fafb";
+                e.currentTarget.style.borderColor = "#4a7c59";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#ffffff";
+                e.currentTarget.style.borderColor = "#d1d5db";
+              }}
+            >
+              <Download size={16} />
+              Export Data
+            </button>
+          )}
+        </div>
         <p style={{ fontSize: "18px", color: "#6b7280", margin: 0 }}>
           Log and track your daily recovery metrics
         </p>
