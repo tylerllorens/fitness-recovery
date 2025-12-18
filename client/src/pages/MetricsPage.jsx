@@ -9,7 +9,7 @@ import {
   fetchMetricDayByDate,
   upsertMetricDay,
 } from "../api/metricsApi.js";
-import { Calendar, Save } from "lucide-react";
+import { Calendar, Save, Copy } from "lucide-react";
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -118,6 +118,37 @@ function MetricsPage() {
     setHrv(day.hrv != null ? String(day.hrv) : "");
     setStrain(day.strain != null ? String(day.strain) : "");
     setNotes(day.notes || "");
+  }
+
+  function handleCopyYesterday() {
+    if (days.length === 0) return;
+
+    // Get yesterday's date
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const yesterdayKey = isoToInput(yesterday.toISOString());
+
+    // Find yesterday's entry
+    const yesterdayEntry = days.find(
+      (d) => isoToInput(d.date) === yesterdayKey
+    );
+
+    if (yesterdayEntry) {
+      // Copy yesterday's values but keep today's date
+      setSleepHours(
+        yesterdayEntry.sleepHours != null
+          ? String(yesterdayEntry.sleepHours)
+          : ""
+      );
+      setRhr(yesterdayEntry.rhr != null ? String(yesterdayEntry.rhr) : "");
+      setHrv(yesterdayEntry.hrv != null ? String(yesterdayEntry.hrv) : "");
+      setStrain(
+        yesterdayEntry.strain != null ? String(yesterdayEntry.strain) : ""
+      );
+      setNotes(""); // Don't copy notes - they're day-specific
+    }
   }
 
   async function handleSelectDateFromCalendar(dateKey) {
@@ -551,33 +582,75 @@ function MetricsPage() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.75rem",
+              justifyContent: "space-between",
               marginBottom: "0.5rem",
             }}
           >
             <div
               style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, #4a7c59 0%, #6b9e78 100%)",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: "0.75rem",
               }}
             >
-              <Save size={20} color="#ffffff" />
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "10px",
+                  background:
+                    "linear-gradient(135deg, #4a7c59 0%, #6b9e78 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Save size={20} color="#ffffff" />
+              </div>
+              <h2
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "800",
+                  color: "#111827",
+                  margin: 0,
+                }}
+              >
+                Log Metrics
+              </h2>
             </div>
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: "800",
-                color: "#111827",
-                margin: 0,
-              }}
-            >
-              Log Metrics
-            </h2>
+
+            {/* Copy Yesterday Button */}
+            {days.length > 0 && (
+              <button
+                type="button"
+                onClick={handleCopyYesterday}
+                style={{
+                  padding: "0.5rem 1rem",
+                  borderRadius: "6px",
+                  border: "1px solid #d1d5db",
+                  background: "#ffffff",
+                  color: "#374151",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#4a7c59";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#ffffff";
+                  e.currentTarget.style.borderColor = "#d1d5db";
+                }}
+              >
+                <Copy size={14} />
+                Copy Yesterday
+              </button>
+            )}
           </div>
           <p
             style={{ fontSize: "14px", color: "#9ca3af", marginBottom: "2rem" }}
