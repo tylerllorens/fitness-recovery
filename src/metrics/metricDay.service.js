@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma.js";
 import { computeReadiness } from "../services/score.js";
 
 const upsertSchema = z.object({
-  date: z.string(), // ISO date, e.g. "2025-11-11"
+  date: z.string(), // "YYYY-MM-DD"
   sleepHours: z.number().min(0).max(24).optional().nullable(),
   rhr: z.number().min(20).max(200).optional().nullable(), // Expanded max to 200
   hrv: z.number().min(0).max(300).optional().nullable(),

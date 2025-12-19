@@ -9,7 +9,8 @@ import {
   fetchMetricDayByDate,
   upsertMetricDay,
 } from "../api/metricsApi.js";
-import { Calendar, Save, Copy, Download } from "lucide-react";
+import { Calendar, Save, Copy, Download, Upload } from "lucide-react";
+import CSVImportModal from "../components/CSVImportModal.jsx";
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -39,6 +40,7 @@ function MetricsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const [date, setDate] = useState("");
   const [sleepHours, setSleepHours] = useState("");
@@ -324,18 +326,49 @@ function MetricsPage() {
             Metrics
           </h1>
 
-          {/* Export Button */}
-          {days.length > 0 && (
+          {/* Export & Import Buttons */}
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            {days.length > 0 && (
+              <button
+                onClick={handleExportCSV}
+                style={{
+                  padding: "0.75rem 1.25rem",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  background: "#ffffff",
+                  color: "#374151",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#4a7c59";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#ffffff";
+                  e.currentTarget.style.borderColor = "#d1d5db";
+                }}
+              >
+                <Download size={16} />
+                Export
+              </button>
+            )}
+
             <button
-              onClick={handleExportCSV}
+              onClick={() => setShowImportModal(true)}
               style={{
                 padding: "0.75rem 1.25rem",
                 borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                background: "#ffffff",
-                color: "#374151",
+                border: "none",
+                background: "linear-gradient(135deg, #4a7c59 0%, #6b9e78 100%)",
+                color: "#ffffff",
                 fontSize: "14px",
-                fontWeight: "600",
+                fontWeight: "700",
                 cursor: "pointer",
                 transition: "all 0.2s ease",
                 display: "flex",
@@ -343,18 +376,19 @@ function MetricsPage() {
                 gap: "0.5rem",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#f9fafb";
-                e.currentTarget.style.borderColor = "#4a7c59";
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 12px rgba(74, 124, 89, 0.3)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#ffffff";
-                e.currentTarget.style.borderColor = "#d1d5db";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
-              <Download size={16} />
-              Export Data
+              <Upload size={16} />
+              Import CSV
             </button>
-          )}
+          </div>
         </div>
         <p style={{ fontSize: "18px", color: "#6b7280", margin: 0 }}>
           Log and track your daily recovery metrics
@@ -1134,6 +1168,21 @@ function MetricsPage() {
           )}
         </div>
       </div>
+
+      {/* CSV Import Modal */}
+      <CSVImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={async () => {
+          // Reload metrics after import
+          try {
+            const items = await fetchMetricDays();
+            setDays(items);
+          } catch (e) {
+            setError(e.message || "Failed to reload metrics");
+          }
+        }}
+      />
     </div>
   );
 }
