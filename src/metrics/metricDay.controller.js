@@ -3,6 +3,8 @@ import {
   upsertMetricDay,
   getLatestMetricDay,
   getMetricDayByDate,
+  getMetricDayById,
+  deleteMetricDay,
 } from "./metricDay.service.js";
 
 export async function getMetricDaysHandler(req, res, next) {
@@ -45,5 +47,23 @@ export async function getMetricDayByDateHandler(req, res, next) {
     res.json({ item });
   } catch (e) {
     next(e);
+  }
+}
+
+export async function deleteMetricDayHandler(req, res, next) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const existing = await getMetricDayById(id, userId);
+    if (!existing) {
+      return res.status(404).json({ message: "Metric day not found" });
+    }
+
+    await deleteMetricDay(id, userId);
+
+    res.json({ message: "Metric day deleted successfully" });
+  } catch (error) {
+    next(error);
   }
 }

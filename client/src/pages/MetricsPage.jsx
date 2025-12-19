@@ -8,6 +8,7 @@ import {
   fetchMetricDays,
   fetchMetricDayByDate,
   upsertMetricDay,
+  deleteMetricDay,
 } from "../api/metricsApi.js";
 import { Calendar, Save, Copy, Download, Upload } from "lucide-react";
 import CSVImportModal from "../components/CSVImportModal.jsx";
@@ -41,6 +42,7 @@ function MetricsPage() {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [date, setDate] = useState("");
   const [sleepHours, setSleepHours] = useState("");
@@ -150,6 +152,45 @@ function MetricsPage() {
         yesterdayEntry.strain != null ? String(yesterdayEntry.strain) : ""
       );
       setNotes(""); // Don't copy notes - they're day-specific
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedDay) return;
+
+    const confirmDelete = window.confirm(
+      `Delete entry for ${new Date(selectedDay.date).toLocaleDateString()}?`
+    );
+
+    if (!confirmDelete) return;
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      await deleteMetricDay(selectedDay.id);
+
+      // Reload metrics
+      const items = await fetchMetricDays();
+      setDays(items);
+
+      // Clear form
+      setSelectedDay(null);
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+      setDate(todayStr);
+      setSleepHours("");
+      setRhr("");
+      setHrv("");
+      setStrain("");
+      setNotes("");
+    } catch (e) {
+      setError(e.message || "Failed to delete entry");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -1078,6 +1119,40 @@ function MetricsPage() {
               <Save size={18} />
               {saving ? "Saving..." : "Save Entry"}
             </button>
+
+            {/* Delete Button - Only show when editing */}
+            {selectedDay && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{
+                  width: "100%",
+                  padding: "1rem",
+                  borderRadius: "8px",
+                  border: "2px solid #ef4444",
+                  background: "#ffffff",
+                  color: "#ef4444",
+                  fontSize: "15px",
+                  fontWeight: "700",
+                  cursor: deleting ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
+                  marginTop: "0.75rem",
+                }}
+                onMouseEnter={(e) => {
+                  if (!deleting) {
+                    e.target.style.background = "#ef4444";
+                    e.target.style.color = "#ffffff";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "#ffffff";
+                  e.target.style.color = "#ef4444";
+                }}
+              >
+                {deleting ? "Deleting..." : "Delete Entry"}
+              </button>
+            )}
           </form>
 
           {/* Selected Day Preview */}

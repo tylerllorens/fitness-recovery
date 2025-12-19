@@ -38,3 +38,11 @@ export async function upsertMetricDay(payload) {
 
   return res?.data?.item ?? res?.item ?? res;
 }
+
+// DELETE /api/metrics/:id
+export async function deleteMetricDay(id) {
+  const res = await apiClient(`/api/metrics/${id}`, {
+    method: "DELETE",
+  });
+  return res;
+}

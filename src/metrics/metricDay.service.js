@@ -58,3 +58,21 @@ export async function getMetricDayByDate(userId, dateString) {
     where: { userId_date: { userId, date: day } },
   });
 }
+
+export async function getMetricDayById(id, userId) {
+  return await prisma.metricDay.findFirst({
+    where: {
+      id,
+      userId,
+    },
+  });
+}
+
+export async function deleteMetricDay(id, userId) {
+  return await prisma.metricDay.delete({
+    where: {
+      id,
+      userId,
+    },
+  });
+}

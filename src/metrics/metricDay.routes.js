@@ -5,6 +5,7 @@ import {
   getMetricDaysHandler,
   getMyLatestMetricDayHandler,
   getMetricDayByDateHandler,
+  deleteMetricDayHandler,
 } from "./metricDay.controller.js";
 
 const router = Router();
@@ -23,5 +24,8 @@ router.get("/latest", getMyLatestMetricDayHandler);
 
 // Get metric day by date (?date=YYYY-MM-DD)
 router.get("/day", getMetricDayByDateHandler);
+
+// Delete a metric day by ID
+router.delete("/:id", deleteMetricDayHandler);
 
 export default router;
